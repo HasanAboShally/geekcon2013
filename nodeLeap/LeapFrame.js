@@ -4,9 +4,8 @@ var prevDirectionStr = null;
 var prevPosition = null;
 var moveCount = 0;
 var circleCount = 0;
-var threshold = 5; // percent
+var threshold = { x: 5, y: 5, z: 5 }; // percent
 
-var secretPattern = ["up", "down", "up", "down", "left", "right", "in", "out", "down"];
 var pattern = [];
 
 var moveDelta = {
@@ -21,7 +20,7 @@ var boxRange = {
     z: { min: -300, max: 300 }
 };
 
-var LeapFrame = function (data) {
+var LeapFrame = function (data, openPattern, closePattern, openDoorCallBack, closeDoorCallBack) {
 
     this.frame = JSON.parse(data);
 
@@ -29,22 +28,22 @@ var LeapFrame = function (data) {
     var _closingSignal = false;
     var _myFunction = function (frame) {
 
-        if(frame.gestures.length > 0){
-            var gesture = frame.gestures[0];
-            if(gesture.type == 'circle'){
-                if(gesture.normal[2] <= 0){
-//                    console.log("----------------------- Running Clockwise -----------------------");
-                }else{
-                    circleCount++;
-                    console.log(circleCount);
-                    if(circleCount == 30){
-                        _closingSignal = true;
-                        circleCount = 0;
-                        console.log("||| Running Counterclockwise:: >>> " + _closingSignal);
-                    }
-                }
-            }
-        }
+        //if (frame.gestures.length > 0) {
+        //    var gesture = frame.gestures[0];
+        //    if (gesture.type == 'circle') {
+        //        if (gesture.normal[2] <= 0) {
+        //            //                    console.log("----------------------- Running Clockwise -----------------------");
+        //        } else {
+        //            circleCount++;
+        //            console.log(circleCount);
+        //            if (circleCount == 30) {
+        //                _closingSignal = true;
+        //                circleCount = 0;
+        //                console.log("||| Running Counterclockwise:: >>> " + _closingSignal);
+        //            }
+        //        }
+        //    }
+        //}
 
         if (frame.pointables.length > 0) {
 
@@ -101,11 +100,17 @@ var LeapFrame = function (data) {
                         console.log(directionStr);
                         pattern.push(directionStr);
 
-                        if (pattern.length > secretPattern.length)
+                        if ((pattern.length > openPattern.length) && (pattern.length > closePattern.length))
                             pattern.shift();
 
-                        if (checkPattern()) {
-                            _isPatternCorrect = true;
+
+                        if (comparePattern(pattern.slice((pattern.length - openPattern.length), pattern.length), openPattern)) {
+                            openDoorCallBack();
+                            pattern = [];
+                        }
+
+                        if (comparePattern(pattern.slice((pattern.length - closePattern.length), pattern.length), closePattern)) {
+                            closeDoorCallBack();
                             pattern = [];
                         }
                     }
@@ -120,12 +125,11 @@ var LeapFrame = function (data) {
         }
     }
 
-    function checkPattern() {
+    function comparePattern(patt1, patt2) {
+        var patt1Str = patt1.join(',');
+        var patt2Str = patt2.join(',');
 
-        var patternStr = pattern.join(',');
-        var secretPatternStr = secretPattern.join(',');
-
-        return (patternStr == secretPatternStr);
+        return (patt1Str == patt2Str);
     }
 
     function isInRange(p) {
@@ -158,9 +162,9 @@ var LeapFrame = function (data) {
 
     function isMoveAboveThreshold(move) {
 
-        return ((Math.abs(move.x) > (boxRange.x.max - boxRange.x.min) * (threshold / 100))
-        || (Math.abs(move.y) > (boxRange.y.max - boxRange.y.min) * (threshold / 100))
-        || (Math.abs(move.z) > (boxRange.z.max - boxRange.z.min) * (threshold / 100)));
+        return ((Math.abs(move.x) > (boxRange.x.max - boxRange.x.min) * (threshold.x / 100))
+        || (Math.abs(move.y) > (boxRange.y.max - boxRange.y.min) * (threshold.y / 100))
+        || (Math.abs(move.z) > (boxRange.z.max - boxRange.z.min) * (threshold.z / 100)));
     }
 
     /* -------------------------------- Original Source Code -------------------------------- */
@@ -267,9 +271,9 @@ var LeapFrame = function (data) {
         this.valid = false;
     }
 
-    if(_closingSignal){
+    if (_closingSignal) {
         this.closingSignal = true;
-    }else{
+    } else {
         this.closingSignal = false;
     }
 
