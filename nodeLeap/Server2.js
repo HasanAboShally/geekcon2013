@@ -14,15 +14,35 @@ var board = new Board('/dev/cu.usbmodem1411', function() {
         var iterations = 0;
         board.pinMode(pin,board.MODES.SERVO);
         setInterval(function(){
-            if (iterations >= 50) {
-                isOpening = false;
+            if (iterations >= 30) {
+                if (isOpening) {
+                    isOpening = false;
+                    isOpen = true;
+                    isClosed = false;
+                } else if(isClosing) {
+                    isClosing = false;
+                    isClosed = true;
+                    isOpen = false;
+                }
+
                 iterations = 0;
             }
             else if (isOpening) {
-                board.servoWrite(pin,1);
+                isOpen = false;
+                isClosed = false;   
+                board.servoWrite(pin, -1);
                 iterations++;
-            } else {
-                board.servoWrite(pin,92);
+                console.log("servor opening " + iterations);
+            } else if (isClosing) {
+                isOpen = false;
+                isClosed = false;   
+                board.servoWrite(pin, 1);
+                iterations++;
+                console.log("servor closing " + iterations);
+            }
+            else {
+                board.servoWrite(pin, 92);
+                // console.log("servor reset");
             }
         },100);
     });
@@ -39,7 +59,7 @@ function open() {
 
 function close() {
     console.log("close");
-    sweep(-1);
+    isClosing = true;
 }
 
 ws.on('message', function (data, flags) {
@@ -47,9 +67,10 @@ ws.on('message', function (data, flags) {
 
     if (i % 3 === 0) {
         var frame = new LeapFrame(data);
-        if(frame.frame.hands && frame.frame.hands.length == 1 && !isOpening){
-            isOpening = true;
-            open();
+        if(frame.valid && !isOpening && !isClosing && isClosed){
+             open();
+        }else if(frame.closingSignal && !isOpening && !isClosing && isOpen){
+             close();
         }
         i = 0;
     }
