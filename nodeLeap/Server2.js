@@ -68,9 +68,11 @@ ws.on('message', function (data, flags) {
     if (i % 3 === 0) {
         var frame = new LeapFrame(data);
         if(frame.valid && !isOpening && !isClosing && isClosed){
-             open();
+            console.log('servo should be running');
+             // open();
         }else if(frame.closingSignal && !isOpening && !isClosing && isOpen){
-             close();
+            console.log('servo should be reversing');
+             // close();
         }
         i = 0;
     }
