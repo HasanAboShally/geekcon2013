@@ -3,6 +3,15 @@ var WebSocket = require('ws');
 var Board = require('./node_modules/firmata').Board;
 
 
+
+
+var isClappingEnabled = true;
+
+
+
+
+
+
 var i = 0;
 var isOpening = false;
 var isOpen = false;
@@ -58,22 +67,28 @@ var board = new Board('/dev/cu.usbmodem1411', function() {
 //     isClosing = true;
 // }
 
+
+
 function openDoorCallback() {
+
+    if (isClosed) {
     console.log("============================================================================================");
     console.log("===================================== Welcome to Labgoo ====================================");
     console.log("============================================================================================");
 
-    if (isClosed) {
+    
         isOpening = true;
     }
 }
 
 function closeDoorCallback() {
+
+    if (isOpen) {
     console.log("============================================================================================");
     console.log("===================================== Hope to See You Again=================================");
     console.log("============================================================================================");
 
-    if (isOpen) {
+    
         isClosing = true;
     }
 }
@@ -98,22 +113,26 @@ var wsLeapMotion = new WebSocket('ws://localhost:6437')
     });
 
 
-// Clap n' Nock
-var COMMANDS = { 
-    CLOSE_DOOR: 0, 
-    OPEN_DOOR: 1 
-};
+    // if(isClappingEnabled){
+    //     // Clap n' Nock
+    //     var COMMANDS = { 
+    //         CLOSE_DOOR: 0, 
+    //         OPEN_DOOR: 1 
+    //     };
 
-// var wsClapping = new WebSocket('ws://192.168.1.206:10000')
-//     .on('message', function (command, flags) {
-//         switch (command) {
-//             case COMMANDS.OPEN_DOOR: { 
-//                 // openDoor(); 
-//             } 
-//                 break;
-//             case COMMANDS.CLOSE_DOOR: { 
-//                 // closeDoor(); 
-//             } 
-//                 break;
-//         }
-//     }); 
+    //     var stickIpAdress = "192.168.43.49";
+
+    //     try{
+    //         var wsClapping = new WebSocket('ws://192.168.43.127:10000')
+    //             .on('message', function (command, flags) {
+    //                 //console.log(command);
+    //                 switch (+command) {
+    //                     case COMMANDS.OPEN_DOOR: { openDoorCallback(); } break;
+    //                     case COMMANDS.CLOSE_DOOR: { closeDoorCallback(); } break;
+    //                 }
+    //             });
+    //     }
+    //     catch(e){
+
+    //     }
+    // }
